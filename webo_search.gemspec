@@ -9,9 +9,9 @@ Gem::Specification.new do |s|
   s.version     = WeboSearch::VERSION
   s.authors     = ["Amitkumar Jha"]
   s.email       = ["amit@weboniselab.com"]
-  s.homepage    = "TODO"
-  s.summary     = "TODO: Summary of WeboSearch."
-  s.description = "TODO: Description of WeboSearch."
+  s.homepage    = "https://github.com/amitwebonise/webo_search"
+  s.summary     = "Generic search plugin for Postgres Database."
+  s.description = "Generic search plugin for Postgres Database.."
   s.license     = "MIT"
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
