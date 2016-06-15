@@ -30,7 +30,7 @@ module WeboSearch
       r_details = record_details.select{ |tn| tn[1] == key }
       record_detail = r_details.empty? ? record_details.select{ |tn| tn[1].include?(key) }.first : r_details.first
       values.each do |k, v|
-        conditions << build_query_string(k, v, record_detail)
+        conditions << build_query_string(k, v, record_detail) if v.present?
       end
     end
     conditions.join(' AND ')
@@ -53,9 +53,9 @@ module WeboSearch
 
   def self.query_string(field_name, value, record_detail)
     if Object.const_get(record_detail[0]).columns_hash["#{field_name}"].type == :string
-      "#{record_detail[1]}.#{field_name} Ilike '%#{value}%'" if value.present?
+      "#{record_detail[1]}.#{field_name} Ilike '%#{value}'"
     else
-       "#{record_detail[1]}.#{field_name} = #{value}" if value.present?
+       "#{record_detail[1]}.#{field_name} = #{value}"
     end
   end
 
