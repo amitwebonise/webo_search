@@ -7,20 +7,25 @@ module WeboSearch
   end
 
   def self.results(params)
-    search_configuration = WeboSearch.configure
-    if params[:namespace].present? && search_configuration.has_key?(params[:namespace])
-      search_configuration['primary_model'] = search_configuration["#{params[:namespace]}"]['primary_model']
-      search_configuration['associated_model'] = search_configuration["#{params[:namespace]}"]['associated_model']
-    end
-    primary_model_name = search_configuration['primary_model']['class_name']  || search_configuration['primary_model'].keys.first.capitalize
-    record_details =  Object.const_get(primary_model_name).reflect_on_all_associations.map{|r| [r.class_name,r.table_name]}
-    record_details.push([primary_model_name,Object.const_get(primary_model_name).table_name])
-    if search_configuration['associated_model'].present?
-      associated_model_names = search_configuration['associated_model'].keys rescue []
-      associated_model_names = Object.const_get(primary_model_name).reflect_on_all_associations.map(&:name).select{| model_name | associated_model_names.include?(model_name.to_s)}
-      Object.const_get(primary_model_name).joins(*associated_model_names).where(build_params(params[:search], record_details))
-    else
-       Object.const_get(primary_model_name).where(build_params(params[:search], record_details))
+    begin
+      search_configuration = WeboSearch.configure
+      if params[:namespace].present? && search_configuration.has_key?(params[:namespace])
+        search_configuration['primary_model'] = search_configuration["#{params[:namespace]}"]['primary_model']
+        search_configuration['associated_model'] = search_configuration["#{params[:namespace]}"]['associated_model']
+      end
+      primary_model_name = search_configuration['primary_model']['class_name']  || search_configuration['primary_model'].keys.first.capitalize
+      record_details =  Object.const_get(primary_model_name).reflect_on_all_associations.map{|r| [r.class_name,r.table_name]}
+      record_details.push([primary_model_name,Object.const_get(primary_model_name).table_name])
+      if search_configuration['associated_model'].present?
+        associated_model_names = search_configuration['associated_model'].keys rescue []
+        associated_model_names = Object.const_get(primary_model_name).reflect_on_all_associations.map(&:name).select{| model_name | associated_model_names.include?(model_name.to_s)}
+        Object.const_get(primary_model_name).joins(*associated_model_names).where(build_params(params[:search], record_details))
+      else
+         Object.const_get(primary_model_name).where(build_params(params[:search], record_details))
+      end
+    rescue Excepption => e
+      Rails.logger.info("Error from search engine : #{e.message}")
+      []
     end
   end
 
