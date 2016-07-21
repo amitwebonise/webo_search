@@ -7,7 +7,6 @@ module WeboSearch
   end
 
   def self.results(params)
-    begin
       search_configuration = WeboSearch.configure
       if params[:namespace].present? && search_configuration.has_key?(params[:namespace])
         search_configuration['primary_model'] = search_configuration["#{params[:namespace]}"]['primary_model']
@@ -23,10 +22,6 @@ module WeboSearch
       else
          Object.const_get(primary_model_name).where(build_params(params[:search], record_details))
       end
-    rescue Excepption => e
-      Rails.logger.info("Error from search engine : #{e.message}")
-      []
-    end
   end
 
   def self.build_params(params, record_details)
@@ -57,6 +52,7 @@ module WeboSearch
   end
 
   def self.query_string(field_name, value, record_detail)
+    value = value.delete("'")
     if Object.const_get(record_detail[0]).columns_hash["#{field_name}"].type == :string
       "#{record_detail[1]}.#{field_name} Ilike '%#{value}'"
     else
