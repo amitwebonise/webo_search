@@ -26,38 +26,49 @@ module WeboSearch
 
   def self.build_params(params, record_details)
     conditions = []
+    values_array = []
     params.each do |key, values|
       r_details = record_details.select{ |tn| tn[1] == key }
       record_detail = r_details.empty? ? record_details.select{ |tn| tn[1].include?(key) }.first : r_details.first
       values.each do |k, v|
-        conditions << build_query_string(k, v, record_detail) if v.present?
+        if v.present?
+          query_details = build_query_string(k, v, record_detail)
+          conditions << query_details[:query]
+          values_array.concat(query_details[:value])
+        end
       end
     end
-    conditions.join(' AND ')
+    conditions = conditions.join(' AND ')
+    values_array.unshift(conditions)
   end
 
   def self.build_query_string(field_name, value, record_detail)
     if field_name.include?('_OR_')
       or_query = []
       field_names = field_name.split('_OR_')
+      values_array = []
       field_names.each do |field_name|
         value.split(' ').each do |v|
-          or_query << query_string(field_name, v, record_detail)
+          query_details = query_string(field_name, v, record_detail)
+          or_query << query_details[:query]
+          values_array.push(query_details[:value])
         end
       end
-      or_query.join(' OR ').prepend('(') + ')'
+      or_query = or_query.join(' OR ').prepend('(') + ')'
+      {query: or_query, value: values_array.flatten}
     else
       query_string(field_name, value, record_detail)
     end
   end
 
   def self.query_string(field_name, value, record_detail)
-    value = value.delete("'")
     if Object.const_get(record_detail[0]).columns_hash["#{field_name}"].type == :string
-      "#{record_detail[1]}.#{field_name} Ilike '%#{value}'"
+      value = "#{value}%"
+      query = "#{record_detail[1]}.#{field_name} ILIKE ?"
     else
-       "#{record_detail[1]}.#{field_name} = #{value}"
+       query = "#{record_detail[1]}.#{field_name} = ?"
     end
+    {query: query, value: [value]}
   end
 
   def self.configure
