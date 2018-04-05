@@ -19,5 +19,11 @@ module WeboSearch
         @webo_search['associated_model'] = @webo_search["#{params[:namespace]}"]['associated_model']
       end
     end
+
+    private
+
+    def allow_iframe
+      response.headers.delete 'X-Frame-Options'
+    end
   end
 end
