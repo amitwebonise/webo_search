@@ -1,6 +1,5 @@
 module WeboSearch
   class SearchesController < ApplicationController
-    layout :false
     before_action :extract_namespace
     after_action :allow_iframe, only: :show
 
