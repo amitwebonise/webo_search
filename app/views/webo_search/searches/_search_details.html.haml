@@ -1,0 +1,25 @@
+.container{style: 'margin-top:80px;'}
+  .usermanagement
+    .form-container.row
+      = form_tag '', method: :get, id: 'search_data' do
+        - @webo_search['primary_model'].to_a.each do |key, value|
+          - value.split(',').each do | v |
+            .col-md-6.clearfix
+              .form-group
+                %label
+                  = "Enter #{v.capitalize}".humanize
+                = text_field_tag "search[#{key}][#{v}]", params[:search].present? ? params[:search]["#{key}"]["#{v}"] : '', placeholder: "Enter #{v.capitalize}".humanize
+        - @webo_search['associated_model'].to_a.each do |key, value|
+          - value.split(',').each do | v |
+            .col-md-6.clearfix
+              .form-group
+                %label
+                  = "Enter #{v.capitalize}".humanize
+                = text_field_tag "search[#{key}][#{v}]",params[:search].present? ? params[:search]["#{key}"]["#{v}"] : '', placeholder: "Enter #{v.capitalize}".humanize
+
+
+        .col-md-12.twoButtonsWrap
+          = submit_tag t('common.search'), name: nil
+          - if @results.present?
+            %h1
+              = "Total Record Found : #{@results.count}"
