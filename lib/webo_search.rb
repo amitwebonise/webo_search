@@ -15,9 +15,11 @@ module WeboSearch
       primary_model_name = search_configuration['primary_model']['class_name']  || search_configuration['primary_model'].keys.first.capitalize
       record_details =  Object.const_get(primary_model_name).reflect_on_all_associations.map{|r| [r.class_name,r.table_name]}
       record_details.push([primary_model_name,Object.const_get(primary_model_name).table_name])
+
       if search_configuration['associated_model'].present?
         associated_model_names = search_configuration['associated_model'].keys rescue []
         associated_model_names = Object.const_get(primary_model_name).reflect_on_all_associations.map(&:name).select{| model_name | associated_model_names.include?(model_name.to_s)}
+
         Object.const_get(primary_model_name).joins(*associated_model_names).where(build_params(params[:search], record_details))
       else
          Object.const_get(primary_model_name).where(build_params(params[:search], record_details))
@@ -31,7 +33,7 @@ module WeboSearch
       r_details = record_details.select{ |tn| tn[1] == key }
       record_detail = r_details.empty? ? record_details.select{ |tn| tn[1].include?(key) }.first : r_details.first
       values.each do |k, v|
-        if v.present?
+        if v.present? && v.to_s != 'Ignore'
           query_details = build_query_string(k, v, record_detail)
           conditions << query_details[:query]
           values_array.concat(query_details[:value])
