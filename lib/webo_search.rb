@@ -15,30 +15,12 @@ module WeboSearch
       primary_model_name = search_configuration['primary_model']['class_name']  || search_configuration['primary_model'].keys.first.capitalize
       record_details =  Object.const_get(primary_model_name).reflect_on_all_associations.map{|r| [r.class_name,r.table_name]}
       record_details.push([primary_model_name,Object.const_get(primary_model_name).table_name])
-      debugger
-      select_tables = Object.const_get(primary_model_name).reflect_on_all_associations.map{|r| [r.class_name, r.plural_name, r.table_name] }
 
       if search_configuration['associated_model'].present?
         associated_model_names = search_configuration['associated_model'].keys rescue []
         associated_model_names = Object.const_get(primary_model_name).reflect_on_all_associations.map(&:name).select{| model_name | associated_model_names.include?(model_name.to_s)}
-        selected_tables = []
-        model_names = associated_model_names.map{|m| m.to_s.pluralize}
-        select_tables.each do |table|
-          if model_names.include?(table[1])
-            selected_tables << table[2]
-          end
-        end
-        tables_list = selected_tables
-        selected_tables.push(Object.const_get(primary_model_name).table_name)
-        tables_list = selected_tables
-        selected_tables = selected_tables.map{|s| "#{s}.*"}.join(',')
-        query_string = ""
-        tables_list.each do |tn|
-         query_string += " LEFT OUTER JOIN #{tn} ON #{Object.const_get(primary_model_name).table_name}.id = #{tn}.#{primary_model_name.downcase} "
-        end
 
-
-        Object.const_get(primary_model_name).joins(query_string).select(selected_tables).where(build_params(params[:search], record_details))
+        Object.const_get(primary_model_name).joins(*associated_model_names).where(build_params(params[:search], record_details))
       else
          Object.const_get(primary_model_name).where(build_params(params[:search], record_details))
       end
